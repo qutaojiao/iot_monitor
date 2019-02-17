@@ -1,7 +1,4 @@
-const { promisify } = require('util');
-const request = require('request');
-const cheerio = require('cheerio');
-const axios = require('axios');
+
 
 /**
  * GET /api

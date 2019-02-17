@@ -18,9 +18,6 @@ const passport = require('passport');
 const expressValidator = require('express-validator');
 const expressStatusMonitor = require('express-status-monitor');
 const sass = require('node-sass-middleware');
-const multer = require('multer');
-
-const upload = multer({ dest: path.join(__dirname, 'uploads') });
 
 /**
  * Load environment variables from .env file, where API keys and passwords are configured.
@@ -32,7 +29,7 @@ dotenv.load({ path: '.env' });
  */
 const userController = require('./controllers/user');
 const apiController = require('./controllers/api');
-const contactController = require('./controllers/contact');
+const devicesController = require('./controllers/devices');
 
 /**
  * API keys and Passport configuration.
@@ -123,20 +120,11 @@ app.use('/webfonts', express.static(path.join(__dirname, 'node_modules/@fortawes
 /**
  * Primary app routes.
  */
-app.get('/', passportConfig.isAuthenticated, userController.getAccount);
+app.get('/', passportConfig.isAuthenticated, devicesController.getDevices);
 app.get('/login', userController.getLogin);
 app.post('/login', userController.postLogin);
 app.get('/logout', userController.logout);
-app.get('/forgot', userController.getForgot);
-app.post('/forgot', userController.postForgot);
-app.get('/reset/:token', userController.getReset);
-app.post('/reset/:token', userController.postReset);
-app.get('/contact', contactController.getContact);
-app.post('/contact', contactController.postContact);
-app.get('/account', passportConfig.isAuthenticated, userController.getAccount);
-app.post('/account/profile', passportConfig.isAuthenticated, userController.postUpdateProfile);
-app.post('/account/password', passportConfig.isAuthenticated, userController.postUpdatePassword);
-app.post('/account/delete', passportConfig.isAuthenticated, userController.postDeleteAccount);
+app.get('/devices', passportConfig.isAuthenticated, devicesController.getDevices);
 
 /**
  * API examples routes.
