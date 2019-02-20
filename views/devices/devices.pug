@@ -1,15 +1,76 @@
 extends ../layout
 
 block content
+  mixin check(check)
+    if check && check.pass && check.timestamp
+      if(check.pass)
+        span.text-success.font-weight-bold= "Pass"
+      else
+        span.text-danger.font-weight-bold= "Fail"
+      span.small.text-muted= check.timestamp
+    else
+      span.text-warning= "Not Available"
+  mixin actions(deviceId, deviceAlias)
+    span.float-right
+      a.btn.btn-light(href="/devices/edit?id="+deviceId title="Edit device")
+        i.far.fa-edit.font-weight-lighter
+      a.btn.btn-light(href="#" title="Delete device")
+        i.fas.fa-times-circle.font-weight-lighter(data-toggle="modal" data-target="#deleteModal" data-id=deviceId data-alias=deviceAlias)
+  
+  .modal.fade(id="deleteModal", tabindex="-1", role="dialog", aria-labelledby="exampleModalLabel", aria-hidden="true")
+    .modal-dialog(role="document")
+      .modal-content
+        .modal-header
+          h5.modal-title= "Delete Monitored Device"
+          button.close(type="button" data-dismiss="modal" aria-label="Close")
+            span(aria-hidden="true") &times;
+        .modal-body
+          span.
+            Are you sure you want to delete #[span(id="deviceToDelete")]?
+        .modal-footer
+          button.btn.btn-secondary(type="button" data-dismiss="modal")= "Close"
+          form(method="POST" action="devices/delete")
+            input(type='hidden', name='_csrf', value=_csrf)
+            input(type="hidden" name="id" id="deviceToDeleteId" value="")
+            button.btn.btn-primary(type="submit")= "Delete"
+
   .pb-2.mt-2.mb-4.border-bottom
     h3 Devices Dashboard
   a.btn.btn-primary.btn-lg.float-right(role="button" aria-disabled="true" href="devices/add" title="Add Monitored Device")
     i.fas.fa-plus
-  table.table.table-dark.table-striped
-    thead
+  table.table
+    thead.thead-dark
       tr
         th(scope=col) Alias
-        th(scope=col) Hostname
         th(scope=col) IP
-        th(scope=col) Status
+        th(scope=col) Ping Check
+        th(scope=col) OTA Check
+        th(scope=col) MQTT Check
         th(scope=col) Actions
+    tbody
+      each device in devices
+        tr(data-deviceid=device._id)
+          td= device.alias
+          td= device.ip
+          td
+            if device.checks.ping 
+              +check(device.pingCheck)
+            else
+              span.small.text-muted= "Not Enabled"
+          td 
+            if device.checks.ota 
+              +check(device.otaCheck)
+            else
+              span.small.text-muted= "Not Enabled"
+          td 
+            if device.checks.mqtt
+              +check(device.mqttCheck)
+            else
+              span.small.text-muted= "Not Enabled"
+          td 
+            +actions(device._id, device.alias)
+    tfoot.thead-dark
+      th(colspan=6)= devices.length + " monitored devices."
+
+block pageScripts
+  script(src='/js/devices/devices.js')

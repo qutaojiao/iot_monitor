@@ -26,8 +26,14 @@ exports.validationSchema = {
  * GET /devices
  */
 exports.getDevices = (req, res) => {
-  res.render('devices/devices', {
-    title: 'Monitored devices',
+  Device.find({}).exec((err, devices) => {
+    if (err) {
+      return res.status(500).send(err);
+    }
+    res.render('devices/devices', {
+      title: 'Monitored devices',
+      devices
+    });
   });
 };
 
@@ -36,56 +42,129 @@ exports.getDevices = (req, res) => {
  */
 exports.getAddDevice = (req, res) => {
   const device = new Device();
-  res.render('devices/add', {
+  res.render('devices/form', {
     title: 'Add Monitored Device',
     device
   });
 };
 
+
+function saveDevice(device, callback) {
+  return device.save((err) => {
+    if (err) {
+      if (err.name === 'MongoError' && err.code === 11000) {
+        callback({ ip: { msg: 'A device with the same IP already exists!' } });
+      } else {
+        console.error(err);
+        callback({ _fatal: true });
+      }
+      return;
+    }
+    callback(false);
+  });
+}
+
 /**
  * POST /devices/add
  */
 exports.postAddDevice = (req, res) => {
-  console.log(req.body);
-  let errors = validationResult(req).mapped();
+  const errors = validationResult(req).mapped();
+  if (req.body.updateDevice) {
+    return Device
+      .findById(req.body.updateDevice)
+      .exec((err, device) => {
+        if (err) return res.status(500).send(err);
+        if (!device) {
+          req.flash('errors', { msg: 'Unknown device!' });
+          return res.redirect('/devices');
+        }
+        device.ip = req.body.ip;
+        device.alias = req.body.alias;
+        device.checks = req.body.checks;
+        if (Object.keys(errors).length > 0) {
+          req.flash('errors', { msg: 'Please check the errors below!' });
+          return res.render('devices/form', {
+            title: 'Update Monitored Device',
+            updateDevice: device._id,
+            device,
+            errors: errors || {}
+          });
+        }
+        return saveDevice(device, (errors) => {
+          if (errors) {
+            if (errors._fatal) {
+              req.flash('errors', { msg: 'Something went wrong. Please check the logs!' });
+            } else {
+              req.flash('errors', { msg: 'Please check the errors below!' });
+            }
+            return res.render('devices/form', {
+              title: 'Update Monitored Device',
+              updateDevice: device._id,
+              device,
+              errors: errors || {}
+            });
+          }
+          req.flash('success', { msg: 'Device saved!' });
+          return res.status(301).redirect('/devices');
+        });
+      });
+  }
   const device = new Device({
     ip: req.body.ip,
     alias: req.body.alias,
     checks: req.body.checks,
   });
-
-  if (Object.keys(errors).length > 0) {
-    console.log('Errors ');
+  return saveDevice(device, (errors) => {
     console.log(errors);
-    if (Object.keys(errors).length > 0) {
-      req.flash('errors', { msg: 'Please check the errors below!' });
-    }
-    res.render('devices/add', {
-      title: 'Add Monitored Device',
-      device,
-      errors
-    });
-  } else {
-    device.save((err) => {
-      if (err) {
-        if (err.name === 'MongoError' && err.code === 11000) {
-          errors = {
-            ip: {
-              msg: 'A device with the same IP already exists!'
-            }
-          };
-          req.flash('errors', { msg: 'Please check the errors below!' });
-          res.render('devices/add', {
-            title: 'Add Monitored Device',
-            device,
-            errors
-          });
-        } else {
-          return res.status(500).send(err);
-        }
+    if (errors) {
+      if (errors._fatal) {
+        req.flash('errors', { msg: 'Something went wrong. Please check the logs!' });
+      } else {
+        req.flash('errors', { msg: 'Please check the errors below!' });
       }
+      return res.render('devices/form', {
+        title: 'Add Monitored Device',
+        device,
+        errors: errors || {}
+      });
+    }
+    req.flash('success', { msg: 'Device saved!' });
+    return res.status(301).redirect('/devices');
+  });
+};
+
+/**
+ * GET /devices/edit/?id=
+ */
+exports.getEditDevice = (req, res) => {
+  if (!req.query.id) return res.status(400);
+  return Device
+    .findById(req.query.id)
+    .exec((err, device) => {
+      if (err) return res.status(500).send(err);
+      if (!device) {
+        req.flash('error', { msg: 'Unknown device!' });
+        return res.redirect('/devices');
+      }
+      res.render('devices/form', {
+        title: 'Update Monitored Device',
+        updateDevice: device._id,
+        device,
+        errors: {}
+      });
     });
-  }
-  req.flash('success', { msg: 'Device saved!' });
-  return res.status(301).redirect('/devices');
+};
+
+/**
+ * POST /devices/delete
+ */
+exports.postDeleteDevice = (req, res) => {
+  if (!req.body.id) return res.status(400);
+  return Device
+    .findOneAndDelete({ _id: req.body.id })
+    .exec((err) => {
+      if (err) return res.status(500).send(err);
+      req.flash('success', { msg: 'Device deleted!' });
+      return res.redirect('/devices');
+    });
 };

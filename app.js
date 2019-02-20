@@ -129,6 +129,8 @@ app.get('/logout', userController.logout);
 app.get('/devices', passportConfig.isAuthenticated, devicesController.getDevices);
 app.get('/devices/add', passportConfig.isAuthenticated, devicesController.getAddDevice);
 app.post('/devices/add', passportConfig.isAuthenticated, checkSchema(devicesController.validationSchema), devicesController.postAddDevice);
+app.get('/devices/edit', passportConfig.isAuthenticated, devicesController.getEditDevice);
+app.post('/devices/delete', passportConfig.isAuthenticated, devicesController.postDeleteDevice);
 
 /**
  * API examples routes.
