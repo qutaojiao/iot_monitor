@@ -1,0 +1,45 @@
+extends ../layout
+
+block content
+  .pb-2.mt-2.mb-4.border-bottom
+    h3 Add Monitored Device
+
+  form(action='/devices/add', method='POST')
+    input(type='hidden', name='_csrf', value=_csrf)
+
+    .form-row
+      label.col-md-3.col-form-label.font-weight-bold.text-right(for='alias') Alias
+      .col-md-7
+        input(class="form-control"+(errors && errors.alias?" is-invalid":" is-valid") type='text', name='alias', id='alias', value=device.alias, placeholder='Kitchen Lights', autofocus)
+        if errors && errors.alias
+          .invalid-feedback= errors.alias.msg
+    
+    .form-row
+      label.col-md-3.col-form-label.font-weight-bold.text-right(for='ip') IP
+      .col-md-7
+        input(class="form-control"+(errors && errors.ip?" is-invalid":" is-valid") type='text', name='ip', id='ip', value=device.ip, placeholder='192.168.0.100', required)
+        if errors && errors.ip
+          .invalid-feedback= errors.ip.msg
+    
+    .form-row
+      label.col-md-3.col-form-label.font-weight-bold.text-right Checks
+      .col-md-7
+        .form-check.form-check-inline(style='width: 100%')
+          .col-md-4
+            input.form-check-input(type='checkbox', name='checks[ping]', id='checks_ping', value=1, checked=device.checks.ping)
+            label.form-check-label.font-weight-bold(for='checks[ping]') Ping Check
+          .col-md-4
+            input.form-check-input(type='checkbox', name='checks[ota]', id='checks_ota', value=1, checked=device.checks.ota)
+            label.form-check-label.font-weight-bold(for='checks[ota]') ArduinoOTA Check
+          .col-md-4  
+            input.form-check-input(type='checkbox', name='checks[mqtt]', id='checks_mqtt', value=1, checked=device.checks.mqtt)
+            label.form-check-label.font-weight-bold(for='checks[mqtt]') MQTT Check
+
+    .form-row
+      .offset-md-3.col-md-7.pl-2
+        button.col-md-3.btn.btn-success(type='submit')
+          i.fas.fa-check.fa-sm
+          | Save
+        a.col-md-3.btn.btn-link.float-right(href="/devices", title="Cancel")
+          i.fas.fa-arrow-left.fa-sm= Back
+        

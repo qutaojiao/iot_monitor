@@ -1,4 +1,4 @@
-@import "themes/default/variables";
+@import "_variables";
 
 @import "node_modules/bootstrap/scss/bootstrap";
 @import "node_modules/@ladjs/bootstrap-social/bootstrap-social.scss";
@@ -7,7 +7,7 @@
 @import "node_modules/@fortawesome/fontawesome-free/scss/regular";
 @import "node_modules/@fortawesome/fontawesome-free/scss/solid";
 
-@import "themes/default/default";
+@import "_default";
 
 // Scaffolding
 // -------------------------
@@ -40,6 +40,10 @@ footer {
 
 textarea {
   resize: vertical;
+}
+
+.form-check.form-check-inline {
+  vertical-align: -webkit-baseline-middle;
 }
 
 // Navbar

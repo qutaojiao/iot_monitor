@@ -34,6 +34,7 @@
     "express-session": "^1.15.6",
     "express-status-monitor": "^1.2.3",
     "express-validator": "^5.3.1",
+    "ip-address": "^5.8.9",
     "jquery": "^3.3.1",
     "lob": "^6.0.5",
     "lusca": "^1.6.1",

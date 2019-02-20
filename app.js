@@ -18,6 +18,7 @@ const passport = require('passport');
 const expressValidator = require('express-validator');
 const expressStatusMonitor = require('express-status-monitor');
 const sass = require('node-sass-middleware');
+const { checkSchema } = require('express-validator/check');
 
 /**
  * Load environment variables from .env file, where API keys and passwords are configured.
@@ -124,7 +125,10 @@ app.get('/', passportConfig.isAuthenticated, devicesController.getDevices);
 app.get('/login', userController.getLogin);
 app.post('/login', userController.postLogin);
 app.get('/logout', userController.logout);
+
 app.get('/devices', passportConfig.isAuthenticated, devicesController.getDevices);
+app.get('/devices/add', passportConfig.isAuthenticated, devicesController.getAddDevice);
+app.post('/devices/add', passportConfig.isAuthenticated, checkSchema(devicesController.validationSchema), devicesController.postAddDevice);
 
 /**
  * API examples routes.

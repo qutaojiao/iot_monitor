@@ -1,9 +1,8 @@
 module.exports = {
   apps: [{
-    name: 'IoT Moitor',
+    name: 'IoT Monitor',
     script: 'app.js',
 
-    // Options reference: https://pm2.io/doc/en/runtime/reference/ecosystem-file/
     args: '',
     instances: 1,
     autorestart: true,

@@ -1,0 +1,15 @@
+extends ../layout
+
+block content
+  .pb-2.mt-2.mb-4.border-bottom
+    h3 Devices Dashboard
+  a.btn.btn-primary.btn-lg.float-right(role="button" aria-disabled="true" href="devices/add" title="Add Monitored Device")
+    i.fas.fa-plus
+  table.table.table-dark.table-striped
+    thead
+      tr
+        th(scope=col) Alias
+        th(scope=col) Hostname
+        th(scope=col) IP
+        th(scope=col) Status
+        th(scope=col) Actions
