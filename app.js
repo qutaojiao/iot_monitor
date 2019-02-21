@@ -1,6 +1,12 @@
 /**
  * Module dependencies.
  */
+const isRoot = require('is-root');
+
+if (!isRoot()) {
+  console.error('This process must be executed with root privileges.');
+  process.exit(1);
+}
 const express = require('express');
 const compression = require('compression');
 const session = require('express-session');
@@ -16,9 +22,9 @@ const path = require('path');
 const mongoose = require('mongoose');
 const passport = require('passport');
 const expressValidator = require('express-validator');
-const expressStatusMonitor = require('express-status-monitor');
 const sass = require('node-sass-middleware');
 const { checkSchema } = require('express-validator/check');
+const PingCheck = require('./services/pingCheck');
 
 /**
  * Load environment variables from .env file, where API keys and passwords are configured.
@@ -26,10 +32,15 @@ const { checkSchema } = require('express-validator/check');
 dotenv.load({ path: '.env' });
 
 /**
+ * INitialize services
+ */
+const SERVICES = {};
+
+/**
  * Controllers (route handlers).
  */
 const userController = require('./controllers/user');
-const apiController = require('./controllers/api');
+// const apiController = require('./controllers/api');
 const devicesController = require('./controllers/devices');
 
 /**
@@ -56,13 +67,17 @@ mongoose.connection.on('error', (err) => {
 });
 
 /**
+ * Start services
+ */
+SERVICES['ping-check'] = new PingCheck();
+
+/**
  * Express configuration.
  */
 app.set('host', process.env.APP_IP || '0.0.0.0');
 app.set('port', process.env.APP_PORT || 5000);
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'pug');
-app.use(expressStatusMonitor());
 app.use(compression());
 app.use(sass({
   src: path.join(__dirname, 'public'),
@@ -99,6 +114,7 @@ app.use((req, res, next) => {
   res.locals.user = req.user;
   next();
 });
+
 app.use((req, res, next) => {
   // After successful login, redirect back to the intended page
   if (!req.user
@@ -135,7 +151,7 @@ app.post('/devices/delete', passportConfig.isAuthenticated, devicesController.po
 /**
  * API examples routes.
  */
-app.get('/api', apiController.getApi);
+// app.get('/api', apiController.getApi);
 
 /**
  * Error Handler.

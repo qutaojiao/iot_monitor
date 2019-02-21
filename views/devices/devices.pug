@@ -1,15 +1,19 @@
 extends ../layout
 
 block content
+  mixin checkTooltip(check)
+    .small.text-muted Since: !{check.since.toLocaleDateString()}
+    .small.text-muted Last check: !{check.timestamp.toLocaleDateString()}
   mixin check(check)
-    if check && check.pass && check.timestamp
-      if(check.pass)
-        span.text-success.font-weight-bold= "Pass"
+    .text-center
+      if check && check.pass && check.timestamp
+        - var checkTooltip = "Since:<br/>"+(check.since?check.since.toLocaleString():'Unknown')+"<br/>Last Check:<br/>"+(check.timestamp?check.timestamp.toLocaleString():"Unknown")
+        if(check.pass)
+          .text-success.font-weight-bold.text-center(data-toggle="tooltip" data-html="true" title=checkTooltip)= "Pass"
+        else
+          .text-danger.font-weight-bold.text-center(data-toggle="tooltip" data-html="true" title=checkTooltip)= "Fail"
       else
-        span.text-danger.font-weight-bold= "Fail"
-      span.small.text-muted= check.timestamp
-    else
-      span.text-warning= "Not Available"
+        span.text-warning= "Not Available"
   mixin actions(deviceId, deviceAlias)
     span.float-right
       a.btn.btn-light(href="/devices/edit?id="+deviceId title="Edit device")
@@ -43,26 +47,26 @@ block content
       tr
         th(scope=col) Alias
         th(scope=col) IP
-        th(scope=col) Ping Check
-        th(scope=col) OTA Check
-        th(scope=col) MQTT Check
-        th(scope=col) Actions
+        th.text-center(scope=col) Ping Check
+        th.text-center(scope=col) OTA Check
+        th.text-center(scope=col) MQTT Check
+        th.text-right(scope=col) Actions
     tbody
       each device in devices
         tr(data-deviceid=device._id)
           td= device.alias
           td= device.ip
-          td
+          td.text-center
             if device.checks.ping 
               +check(device.pingCheck)
             else
               span.small.text-muted= "Not Enabled"
-          td 
+          td.text-center
             if device.checks.ota 
               +check(device.otaCheck)
             else
               span.small.text-muted= "Not Enabled"
-          td 
+          td.text-center 
             if device.checks.mqtt
               +check(device.mqttCheck)
             else

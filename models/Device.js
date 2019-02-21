@@ -12,15 +12,18 @@ const deviceSchema = new mongoose.Schema({
 
     pingCheck: {
         pass: Boolean,
-        timestamp: Date
+        timestamp: Date,
+        since: Date,
     },
     otaCheck: {
         pass: Boolean,
-        timestamp: Date
+        timestamp: Date,
+        since: Date,
     },
     mqttCheck: {
         pass: Boolean,
-        timestamp: Date
+        timestamp: Date,
+        since: Date,
     }
 }, { timestamps: true });
 const Device = mongoose.model('devices', deviceSchema);
