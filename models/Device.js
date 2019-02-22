@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const Promise = require('bluebird');
 
 const deviceSchema = new mongoose.Schema({
     ip: { type: String, unique: true },
@@ -24,7 +25,19 @@ const deviceSchema = new mongoose.Schema({
         pass: Boolean,
         timestamp: Date,
         since: Date,
-    }
+    },
+    extraOtaInfo: { type: {} },
 }, { timestamps: true });
 const Device = mongoose.model('devices', deviceSchema);
+Device.findByIp = (ip, cb) => {
+    if (cb) {
+        return this.find({ 'ip': ip }, cb);
+    }
+    return new Promise((resolve, reject) => {
+        Device.findOne({ ip: ip }, (err, device) => {
+            if (err) { return reject(err); }
+            return resolve(device);
+        })
+    });
+}
 module.exports = Device;

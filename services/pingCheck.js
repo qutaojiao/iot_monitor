@@ -11,7 +11,7 @@ const pingSessionOptions = {
     ttl: 128
 };
 
-function getDevicesToPing() {
+function getDevices() {
     return new Promise((resolve, reject) => {
         Device.find({ 'checks.ping': true })
             .exec((err, devices) => {
@@ -21,12 +21,14 @@ function getDevicesToPing() {
     });
 }
 
-function pingDevices(that) {
+function ping(that) {
     console.debug('[pingCheck] Starting ping checks...');
-    return getDevicesToPing()
+    that._working = true;
+    return getDevices()
         .catch((err) => {
             console.error('[pingCheck] An error occured while getting devices to ping');
             console.error(err);
+            that._working = false;
             return false;
         })
         .map((device) => {
@@ -49,12 +51,17 @@ function pingDevices(that) {
         })
         .catch((err) => {
             console.error('[pingCheck] Error occured: %s', err.toString());
+            that._working = false;
+        })
+        .then(() => {
+            that._working = false;
         });
 }
 
 function PingCheck() {
+    this._working = false;
     this.pingSession = Ping.createSession(pingSessionOptions);
-    this._timer = setInterval(pingDevices, (process.env.PING_INTERVAL || 30) * 1000, this);
+    this._timer = setInterval(ping, (process.env.PING_INTERVAL || 30) * 1000, this);
     return this;
 }
 

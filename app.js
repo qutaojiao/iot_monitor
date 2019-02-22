@@ -7,6 +7,7 @@ if (!isRoot()) {
   console.error('This process must be executed with root privileges.');
   process.exit(1);
 }
+
 const express = require('express');
 const compression = require('compression');
 const session = require('express-session');
@@ -25,6 +26,7 @@ const expressValidator = require('express-validator');
 const sass = require('node-sass-middleware');
 const { checkSchema } = require('express-validator/check');
 const PingCheck = require('./services/pingCheck');
+const OtaCheck = require('./services/otaCheck');
 
 /**
  * Load environment variables from .env file, where API keys and passwords are configured.
@@ -70,6 +72,7 @@ mongoose.connection.on('error', (err) => {
  * Start services
  */
 SERVICES['ping-check'] = new PingCheck();
+SERVICES['ota-check'] = new OtaCheck();
 
 /**
  * Express configuration.
@@ -101,17 +104,14 @@ app.use(passport.initialize());
 app.use(passport.session());
 app.use(flash());
 app.use((req, res, next) => {
-  if (req.path === '/api/upload') {
-    next();
-  } else {
     lusca.csrf()(req, res, next);
-  }
 });
 app.use(lusca.xframe('SAMEORIGIN'));
 app.use(lusca.xssProtection(true));
 app.disable('x-powered-by');
 app.use((req, res, next) => {
   res.locals.user = req.user;
+  req.services = SERVICES;
   next();
 });
 
