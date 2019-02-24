@@ -22,7 +22,7 @@ function getDevices() {
 }
 
 function ping(that) {
-    console.debug('[pingCheck] Starting ping checks...');
+    console.debug('[pingCheck] Pinging devices...');
     that._working = true;
     return getDevices()
         .catch((err) => {
@@ -34,6 +34,13 @@ function ping(that) {
         .map((device) => {
             console.debug('[pingCheck] Sending ping to %s', device.ip);
             return that.pingSession.pingHost(device.ip, (error, target) => {
+                if (!device.pingCheck) {
+                    device.pingCheck = {
+                        pass: false,
+                        timestamp: new Date(),
+                        since: new Date(),
+                    };
+                }
                 device.pingCheck.timestamp = new Date();
                 const currentStatus = !error;
                 if (!device.pingCheck.since || device.pingCheck.pass !== currentStatus) {
@@ -61,8 +68,20 @@ function ping(that) {
 function PingCheck() {
     this._working = false;
     this.pingSession = Ping.createSession(pingSessionOptions);
-    this._timer = setInterval(ping, (process.env.PING_INTERVAL || 30) * 1000, this);
     return this;
+}
+
+PingCheck.prototype.start = function () {
+    console.log('[pingCheck] Statring...');
+    this._timer = setInterval(ping, (process.env.PING_INTERVAL || 30) * 1000, this);
+}
+
+PingCheck.prototype.stop = function (cb) {
+    console.log('[pingCheck] Stoping...');
+    if (this._timer) {
+        clearInterval(this._timer);
+    }
+    if (cb) { cb(); }
 }
 
 module.exports = PingCheck;

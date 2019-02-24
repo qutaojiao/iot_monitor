@@ -19,7 +19,19 @@ exports.validationSchema = {
     in: ['body'],
     isString: true,
     optional: true,
-  }
+  },
+  'mqttOptions.statusTopic': {
+    in: ['body'],
+    errorMessage: 'This is required for Mqtt Check',
+    custom: {
+      options: (value, { req, location, path }) => {
+        if (req.body && req.body.checks && req.body.checks.mqtt) {
+          return (value.match(/.{1,}/) !== null);
+        }
+        return true;
+      }
+    }
+  },
 };
 
 /**
@@ -69,6 +81,7 @@ function saveDevice(device, callback) {
  */
 exports.postAddDevice = (req, res) => {
   const errors = validationResult(req).mapped();
+  console.log(errors);
   if (req.body.updateDevice) {
     return Device
       .findById(req.body.updateDevice)
@@ -81,6 +94,9 @@ exports.postAddDevice = (req, res) => {
         device.ip = req.body.ip;
         device.alias = req.body.alias;
         device.checks = req.body.checks;
+        if (device.checks && device.checks.mqtt) {
+          device.mqttOptions = req.body.mqttOptions;
+        }
         if (Object.keys(errors).length > 0) {
           req.flash('errors', { msg: 'Please check the errors below!' });
           return res.render('devices/form', {
@@ -114,8 +130,10 @@ exports.postAddDevice = (req, res) => {
     alias: req.body.alias,
     checks: req.body.checks,
   });
+  if (device.checks && device.checks.mqtt) {
+    device.mqttOptions = req.body.mqttOptions;
+  }
   return saveDevice(device, (errors) => {
-    console.log(errors);
     if (errors) {
       if (errors._fatal) {
         req.flash('errors', { msg: 'Something went wrong. Please check the logs!' });

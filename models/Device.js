@@ -11,20 +11,24 @@ const deviceSchema = new mongoose.Schema({
         mqtt: { type: Boolean, default: false },
     },
 
+    mqttOptions: {
+        statusTopic: { type: String, default: '' },
+    },
+
     pingCheck: {
-        pass: Boolean,
-        timestamp: Date,
-        since: Date,
+        pass: { type: Boolean, default: false },
+        timestamp: { type: Date, default: Date.now },
+        since: { type: Date, default: Date.now },
     },
     otaCheck: {
-        pass: Boolean,
-        timestamp: Date,
-        since: Date,
+        pass: { type: Boolean, default: false },
+        timestamp: { type: Date, default: Date.now },
+        since: { type: Date, default: Date.now },
     },
     mqttCheck: {
-        pass: Boolean,
-        timestamp: Date,
-        since: Date,
+        pass: { type: Boolean, default: false },
+        timestamp: { type: Date, default: Date.now },
+        since: { type: Date, default: Date.now },
     },
     extraOtaInfo: { type: {} },
 }, { timestamps: true });
@@ -35,6 +39,17 @@ Device.findByIp = (ip, cb) => {
     }
     return new Promise((resolve, reject) => {
         Device.findOne({ ip: ip }, (err, device) => {
+            if (err) { return reject(err); }
+            return resolve(device);
+        })
+    });
+}
+Device.findByMqttStatusTopic = (topic, cb) => {
+    if (cb) {
+        return this.find({ mqttOptions: { statusTopic: topic } }, cb);
+    }
+    return new Promise((resolve, reject) => {
+        Device.find({ mqttOptions: { statusTopic: topic } }, (err, device) => {
             if (err) { return reject(err); }
             return resolve(device);
         })

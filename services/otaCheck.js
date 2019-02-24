@@ -28,7 +28,14 @@ function addDiscoveredDevice(service) {
 }
 
 function updateDeviceStatus(device, status, extraInfo, cb) {
-    console.debug('[otaCheck] Marking device %s as: %s', addr, state ? 'Up' : 'Down');
+    console.debug('[otaCheck] Marking device %s as: %s', device.ip, status ? 'Up' : 'Down');
+    if (!device.otaCheck) {
+        device.otaCheck = {
+            pass: false,
+            since: new Date(),
+            timestamp: new Date(),
+        };
+    }
     device.otaCheck.pass = status;
     device.otaCheck.timestamp = new Date();
     if (!device.otaCheck.since || device.otaCheck.pass !== status) {
@@ -112,12 +119,21 @@ function handleServiceDown(service) {
 function OtaCheck() {
     this._working = false;
     this.bonjour = new Bonjour();
-    this.browser = this.bonjour.find({ type: process.env.OTA_TYPE_QUERY || 'arduino' });
-    console.log('[otaCheck] Discovering devices');
-    this.browser.on('up', handleServiceUp);
-    this.browser.on('down', handleServiceDown);
-    this._timer = setInterval(discover, (process.env.OTA_INTERVAL || 30) * 1000, this);
     return this;
 }
 
+OtaCheck.prototype.start = function () {
+    console.log('[otaCheck] Starting...');
+    console.log('[otaCheck] Discovering devices');
+    this.browser = this.bonjour.find({ type: process.env.OTA_TYPE_QUERY || 'arduino' });
+    this.browser.on('up', handleServiceUp);
+    this.browser.on('down', handleServiceDown);
+    this._timer = setInterval(discover, (process.env.OTA_INTERVAL || 30) * 1000, this);
+}
+
+OtaCheck.prototype.stop = function (cb) {
+    console.log('[otaCheck] Stoping...');
+    this.browser.stop();
+    if (cb) { cb(); }
+}
 module.exports = OtaCheck;

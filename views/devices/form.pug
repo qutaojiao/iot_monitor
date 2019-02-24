@@ -35,6 +35,15 @@ block content
           .col-md-4  
             input.form-check-input(type='checkbox', name='checks[mqtt]', id='checks_mqtt', value=1, checked=device.checks.mqtt)
             label.form-check-label.font-weight-bold(for='checks[mqtt]') MQTT Check
+    
+    .form-row.mqtt
+      label.col-md-3.col-form-label.font-weight-bold.text-right Mqtt Options
+    .form-row.mqtt
+      label.col-md-3.col-form-label.font-weight-bold.text-right(for="mqttOptions[statusTopic]") Status topic
+      .col-md-7
+        input(class="form-control"+(errors && errors['mqttOptions.statusTopic']?" is-invalid":" is-valid") type='text', name='mqttOptions[statusTopic]', id='mqttOptions_topic', value=((device.mqttOptions && device.mqttOptions.statusTopic)?device.mqttOptions.statusTopic:''), placeholder='home/kitchen/lights')
+        if errors && errors['mqttOptions.statusTopic']
+          .invalid-feedback= errors['mqttOptions.statusTopic'].msg
 
     .form-row
       .offset-md-3.col-md-7.pl-2
@@ -43,4 +52,6 @@ block content
           | Save
         a.col-md-3.btn.btn-link.float-right(href="/devices", title="Cancel")
           i.fas.fa-arrow-left.fa-sm= Back
-        
+
+block pageScripts
+  script(src='/js/devices/form.js')
